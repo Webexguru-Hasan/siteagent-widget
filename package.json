@@ -1,0 +1,23 @@
+{
+  "name": "siteagent-widget",
+  "version": "1.0.0",
+  "description": "SiteAgent - Floating AI chat widget for any website",
+  "type": "module",
+  "main": "dist/siteagent.min.js",
+  "scripts": {
+    "build": "node build.js",
+    "watch": "node build.js --watch"
+  },
+  "keywords": [
+    "ai",
+    "chat",
+    "widget",
+    "mcp",
+    "siteagent"
+  ],
+  "author": "SiteAgent",
+  "license": "MIT",
+  "devDependencies": {
+    "terser": "^5.31.0"
+  }
+}

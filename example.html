@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiteAgent Chat Widget - Integration Example</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f5f5;
+    }
+
+    header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    section {
+      background: white;
+      border-radius: 8px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    section h2 {
+      color: #667eea;
+      margin-bottom: 15px;
+      font-size: 24px;
+    }
+
+    section p {
+      margin-bottom: 15px;
+      line-height: 1.8;
+    }
+
+    code {
+      background: #f4f4f4;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-family: 'Courier New', monospace;
+      color: #c7254e;
+    }
+
+    pre {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      margin: 15px 0;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .feature-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .feature-card h3 {
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      opacity: 0.9;
+      margin: 0;
+    }
+
+    footer {
+      background: #333;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      margin-top: 40px;
+    }
+
+    .highlight {
+      background: #fffacd;
+      padding: 15px;
+      border-left: 4px solid #667eea;
+      margin: 15px 0;
+    }
+
+    a {
+      color: #667eea;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <!-- Chat Widget Integration -->
+  <script>
+    window.SiteAgentConfig = {
+      apiKey: 'default-api-key',                    // Replace with your API key
+      serverUrl: 'http://localhost:3000',           // Replace with your server URL
+      tenantId: 'default-tenant'                    // Replace with your tenant ID
+    };
+  </script>
+  <script src="./dist/siteagent.min.js"></script>
+
+  <header>
+    <h1>🤖 SiteAgent Chat Widget</h1>
+    <p>Floating AI chat assistant for any website</p>
+  </header>
+
+  <div class="container">
+    <section>
+      <h2>Features</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <h3>💬 Smart Chat</h3>
+          <p>AI-powered conversations powered by LLMs</p>
+        </div>
+        <div class="feature-card">
+          <h3>🔍 Semantic Search</h3>
+          <p>Find relevant content from your website</p>
+        </div>
+        <div class="feature-card">
+          <h3>📱 Responsive</h3>
+          <p>Works perfectly on mobile and desktop</p>
+        </div>
+        <div class="feature-card">
+          <h3>⚡ Lightweight</h3>
+          <p>Single minified script, < 15 KB</p>
+        </div>
+        <div class="feature-card">
+          <h3>🎨 Customizable</h3>
+          <p>Easy to configure and style</p>
+        </div>
+        <div class="feature-card">
+          <h3>📝 Context Aware</h3>
+          <p>Understands your page and intent</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Quick Start</h2>
+      <p>Add the widget to your website in just 2 steps:</p>
+
+      <h3 style="margin-top: 25px; margin-bottom: 10px;">Step 1: Configuration</h3>
+      <p>Add this script before the widget script:</p>
+      <pre><code>&lt;script&gt;
+  window.SiteAgentConfig = {
+    apiKey: 'YOUR_API_KEY',              // Get from SiteAgent dashboard
+    serverUrl: 'https://api.siteagent.com',  // Your SiteAgent server
+    tenantId: 'YOUR_TENANT_ID'           // Your tenant identifier
+  };
+&lt;/script&gt;</code></pre>
+
+      <h3 style="margin-top: 25px; margin-bottom: 10px;">Step 2: Load Widget</h3>
+      <p>Add the widget script:</p>
+      <pre><code>&lt;script src="https://cdn.example.com/siteagent.min.js"&gt;&lt;/script&gt;</code></pre>
+
+      <div class="highlight">
+        <strong>✨ That's it!</strong> The floating chat button will appear in the bottom-right corner of your page.
+      </div>
+    </section>
+
+    <section>
+      <h2>Configuration Options</h2>
+      <p>Customize the widget behavior with these options:</p>
+
+      <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+        <thead>
+          <tr style="background: #f0f0f0;">
+            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Option</th>
+            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Type</th>
+            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding: 10px; border: 1px solid #ddd;"><code>apiKey</code></td>
+            <td style="padding: 10px; border: 1px solid #ddd;">string (required)</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">Your API key from SiteAgent dashboard</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px; border: 1px solid #ddd;"><code>serverUrl</code></td>
+            <td style="padding: 10px; border: 1px solid #ddd;">string</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">SiteAgent server URL (default: http://localhost:3000)</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px; border: 1px solid #ddd;"><code>tenantId</code></td>
+            <td style="padding: 10px; border: 1px solid #ddd;">string</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">Your tenant ID (default: 'default-tenant')</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>API Endpoints</h2>
+      <p>The widget communicates with your SiteAgent server via JSON-RPC 2.0:</p>
+
+      <h3 style="margin-top: 25px; margin-bottom: 10px;">Endpoint</h3>
+      <pre><code>POST {serverUrl}/mcp</code></pre>
+
+      <h3 style="margin-top: 25px; margin-bottom: 10px;">Headers</h3>
+      <pre><code>Content-Type: application/json
+Authorization: Bearer {apiKey}</code></pre>
+
+      <h3 style="margin-top: 25px; margin-bottom: 10px;">Tools Called</h3>
+      <ul style="margin: 15px 0 15px 20px;">
+        <li><code>detect_context</code> — Analyzes page URL and user intent</li>
+        <li><code>search_content</code> — Finds relevant content from your site</li>
+        <li><code>get_user_context</code> — Loads conversation history</li>
+        <li><code>save_user_context</code> — Saves messages to history</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Browser Support</h2>
+      <p>The widget works on all modern browsers:</p>
+      <ul style="margin: 15px 0 15px 20px;">
+        <li>✓ Chrome/Edge (latest)</li>
+        <li>✓ Firefox (latest)</li>
+        <li>✓ Safari 12+</li>
+        <li>✓ Mobile browsers (iOS Safari, Chrome Mobile)</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Security</h2>
+      <p>The widget is designed with security in mind:</p>
+      <ul style="margin: 15px 0 15px 20px;">
+        <li>✓ API key is never exposed in the browser</li>
+        <li>✓ CORS headers validated by server</li>
+        <li>✓ Input sanitized before sending to LLM</li>
+        <li>✓ Session data stored locally on device</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Troubleshooting</h2>
+
+      <h3 style="margin-top: 25px; margin-bottom: 10px;">Widget not showing?</h3>
+      <p>1. Check browser console for errors (F12)</p>
+      <p>2. Verify <code>SiteAgentConfig</code> is set before loading the script</p>
+      <p>3. Ensure API key is valid and server URL is correct</p>
+
+      <h3 style="margin-top: 25px; margin-bottom: 10px;">Messages not sending?</h3>
+      <p>1. Check that your SiteAgent server is running</p>
+      <p>2. Verify network request in browser DevTools (Network tab)</p>
+      <p>3. Check CORS headers from server</p>
+
+      <h3 style="margin-top: 25px; margin-bottom: 10px;">Chat history not persisting?</h3>
+      <p>1. Ensure browser allows localStorage</p>
+      <p>2. Check if your server database is connected</p>
+      <p>3. Verify session_id is being saved</p>
+    </section>
+
+    <section>
+      <h2>Example: Complete HTML Page</h2>
+      <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;My Website&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Welcome to My Website&lt;/h1&gt;
+  &lt;p&gt;This is the main content of my page.&lt;/p&gt;
+
+  &lt;!-- SiteAgent Widget --&gt;
+  &lt;script&gt;
+    window.SiteAgentConfig = {
+      apiKey: 'sk-abc123xyz',
+      serverUrl: 'https://api.siteagent.com',
+      tenantId: 'my-company'
+    };
+  &lt;/script&gt;
+  &lt;script src="https://cdn.jsdelivr.net/npm/siteagent-widget@1.0.0/dist/siteagent.min.js"&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+    </section>
+  </div>
+
+  <footer>
+    <p>SiteAgent © 2026 | <a href="#">Documentation</a> | <a href="#">GitHub</a> | <a href="#">Support</a></p>
+  </footer>
+</body>
+</html>
