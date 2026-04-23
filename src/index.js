@@ -17,7 +17,8 @@
   'use strict';
 
   const CONFIG = window.SiteAgentConfig || {};
-  const DEFAULT_SERVER_URL = 'http://localhost:3000';
+  // const DEFAULT_SERVER_URL = 'http://localhost:3000';
+  const DEFAULT_SERVER_URL = 'https://siteagent-mcp.mcpize.run';
   const SERVER_URL = CONFIG.serverUrl || DEFAULT_SERVER_URL;
   const API_KEY = CONFIG.apiKey || 'default-api-key';
   const TENANT_ID = CONFIG.tenantId || 'default-tenant';
