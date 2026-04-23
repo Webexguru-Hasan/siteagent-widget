@@ -449,8 +449,22 @@
           limit: 3,
         });
 
-        // Build response using search results
-        const assistantMessage = this.buildResponse(contextResponse, searchResponse);
+        // Format search results as context string
+        let searchResultsContext = '';
+        if (searchResponse?.results && searchResponse.results.length > 0) {
+          searchResultsContext = searchResponse.results
+            .map(result => result.content || result.content_text || '')
+            .join('\n');
+        }
+
+        // Call generate_response with user message and search context
+        const llmResponse = await this.callMcpTool('generate_response', {
+          user_message: message,
+          search_results: searchResultsContext,
+          tenant_id: TENANT_ID,
+        });
+
+        const assistantMessage = llmResponse?.response_text || 'Unable to generate a response. Please try again.';
 
         // Save assistant response
         await this.callMcpTool('save_user_context', {
@@ -515,7 +529,12 @@
     }
 
     buildResponse(contextData, searchData) {
-      // Build a natural response based on context and search results
+      // First check if detect_context generated a response
+      if (contextData?.response_text) {
+        return contextData.response_text;
+      }
+
+      // Fallback: Build a natural response based on context and search results
       let response = '';
 
       // Use context to tailor the response tone
