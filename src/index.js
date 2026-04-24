@@ -428,22 +428,27 @@
       this.setLoading(true);
 
       try {
-        // Call /chat proxy endpoint (no CORS issues, handles all tool calls internally)
-        const chatResponse = await this.callChatProxy({
+        // Call /mcp endpoint via MCP JSON-RPC 2.0
+        const mcpResponse = await this.callChatProxy({
           message,
           session_id: sessionId,
           tenant_id: TENANT_ID,
           url: window.location.href,
         });
 
-        const assistantMessage = chatResponse?.response || 'Unable to generate a response. Please try again.';
+        // Parse MCP response: result.content[0].text OR result.structuredContent.response
+        const assistantMessage =
+          mcpResponse?.result?.content?.[0]?.text ||
+          mcpResponse?.result?.structuredContent?.response ||
+          'Unable to generate a response. Please try again.';
 
         // Add assistant message to UI
         this.addMessage('assistant', assistantMessage);
 
-        // Update session ID if server returned a new one
-        if (chatResponse?.session_id) {
-          sessionId = chatResponse.session_id;
+        // Update session ID if server returned a new one inside structured content
+        const newSessionId = mcpResponse?.result?.structuredContent?.session_id;
+        if (newSessionId) {
+          sessionId = newSessionId;
           localStorage.setItem('siteagent_session_id', sessionId);
         }
       } catch (error) {
@@ -455,18 +460,35 @@
     }
 
     async callChatProxy(payload) {
-      console.log('[Widget] Sending to /chat:', payload);
-      const response = await fetch(`${SERVER_URL}/chat`, {
+      // Build MCP JSON-RPC 2.0 request
+      const mcpRequest = {
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: {
+          name: 'generate_response',
+          arguments: {
+            user_message: payload.message,
+            session_id: payload.session_id,
+            tenant_id: payload.tenant_id,
+            url: payload.url,
+            search_results: '',
+          },
+        },
+      };
+
+      console.log('[Widget] Sending MCP JSON-RPC to /mcp:', mcpRequest);
+      const response = await fetch(`${SERVER_URL}/mcp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${API_KEY}`,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(mcpRequest),
       });
 
       console.log('[Widget] Response status:', response.status);
-      
+
       if (!response.ok) {
         const errorBody = await response.text();
         console.error('[Widget] Error response:', errorBody);
@@ -474,10 +496,11 @@
       }
 
       const data = await response.json();
-      console.log('[Widget] Response data:', data);
+      console.log('[Widget] MCP Response data:', data);
 
+      // Surface JSON-RPC error as a thrown exception
       if (data.error) {
-        throw new Error(data.error || 'Chat proxy error');
+        throw new Error(data.error.message || 'MCP JSON-RPC error');
       }
 
       return data;
