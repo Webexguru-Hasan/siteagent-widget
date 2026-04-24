@@ -455,6 +455,7 @@
     }
 
     async callChatProxy(payload) {
+      console.log('[Widget] Sending to /chat:', payload);
       const response = await fetch(`${SERVER_URL}/chat`, {
         method: 'POST',
         headers: {
@@ -464,11 +465,16 @@
         body: JSON.stringify(payload),
       });
 
+      console.log('[Widget] Response status:', response.status);
+      
       if (!response.ok) {
+        const errorBody = await response.text();
+        console.error('[Widget] Error response:', errorBody);
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
+      console.log('[Widget] Response data:', data);
 
       if (data.error) {
         throw new Error(data.error || 'Chat proxy error');
@@ -560,22 +566,9 @@
     }
 
     async loadConversationHistory() {
-      try {
-        const context = await this.callMcpTool('get_user_context', {
-          tenant_id: TENANT_ID,
-          session_id: sessionId,
-        });
-
-        if (context.messages && Array.isArray(context.messages)) {
-          // Load previous messages
-          context.messages.forEach((msg) => {
-            this.addMessage(msg.role, msg.content);
-          });
-        }
-      } catch (error) {
-        // Silently fail — conversation history is optional
-        console.debug('Could not load conversation history:', error);
-      }
+      // Conversation history is managed server-side through save_user_context
+      // No need to load it in the widget
+      return;
     }
   }
 
