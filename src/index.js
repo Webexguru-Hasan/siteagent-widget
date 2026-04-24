@@ -613,9 +613,73 @@
     }
 
     async loadConversationHistory() {
-      // Conversation history is managed server-side through save_user_context
-      // No need to load it in the widget
-      return;
+      try {
+        const mcpRequest = {
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'tools/call',
+          params: {
+            name: 'get_user_context',
+            arguments: {
+              tenant_id: TENANT_ID,
+              session_id: sessionId,
+            },
+          },
+        };
+
+        console.log('[Widget] Loading conversation history for session:', sessionId);
+
+        const response = await fetch(`${SERVER_URL}/mcp`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${API_KEY}`,
+          },
+          body: JSON.stringify(mcpRequest),
+        });
+
+        if (!response.ok) {
+          console.warn('[Widget] History load failed with status:', response.status);
+          return;
+        }
+
+        const data = await response.json();
+
+        if (data.error) {
+          console.warn('[Widget] History MCP error:', data.error.message);
+          return;
+        }
+
+        const result = data?.result;
+
+        // Parse messages: structuredContent.messages OR JSON.parse(content[0].text).messages
+        let messages = result?.structuredContent?.messages;
+        if (!messages) {
+          const rawText = result?.content?.[0]?.text;
+          if (rawText) {
+            try {
+              messages = JSON.parse(rawText)?.messages;
+            } catch (_) {
+              // Not JSON — nothing to display
+            }
+          }
+        }
+
+        if (!Array.isArray(messages) || messages.length === 0) {
+          console.log('[Widget] No previous conversation history found.');
+          return;
+        }
+
+        console.log(`[Widget] Restoring ${messages.length} previous messages.`);
+        messages.forEach((msg) => {
+          const role = msg.role === 'user' ? 'user' : 'assistant';
+          const content = msg.content || msg.text || msg.message || '';
+          if (content) this.addMessage(role, content);
+        });
+      } catch (error) {
+        // Silent fail — don't break the widget if history can't be loaded
+        console.warn('[Widget] Could not load conversation history:', error.message);
+      }
     }
   }
 
