@@ -436,17 +436,41 @@
           url: window.location.href,
         });
 
-        // Parse MCP response: result.content[0].text OR result.structuredContent.response
-        const assistantMessage =
-          mcpResponse?.result?.content?.[0]?.text ||
-          mcpResponse?.result?.structuredContent?.response ||
-          'Unable to generate a response. Please try again.';
+        // Parse MCP response with 4-level fallback
+        const result = mcpResponse?.result;
+        let assistantMessage;
+
+        // 1st try: structuredContent.response_text (clean, pre-parsed object)
+        if (result?.structuredContent?.response_text) {
+          assistantMessage = result.structuredContent.response_text;
+        } else {
+          // 2nd try: content[0].text may be a JSON string — parse it
+          const rawText = result?.content?.[0]?.text;
+          if (rawText) {
+            try {
+              const parsed = JSON.parse(rawText);
+              if (parsed?.response_text) {
+                // JSON string containing { response_text: "..." }
+                assistantMessage = parsed.response_text;
+              } else {
+                // 3rd try: content[0].text directly (already a plain string)
+                assistantMessage = rawText;
+              }
+            } catch (_) {
+              // 3rd try: not JSON, use the raw text as-is
+              assistantMessage = rawText;
+            }
+          } else {
+            // 4th try: hard fallback
+            assistantMessage = 'Sorry, I could not process your request.';
+          }
+        }
 
         // Add assistant message to UI
         this.addMessage('assistant', assistantMessage);
 
         // Update session ID if server returned a new one inside structured content
-        const newSessionId = mcpResponse?.result?.structuredContent?.session_id;
+        const newSessionId = result?.structuredContent?.session_id;
         if (newSessionId) {
           sessionId = newSessionId;
           localStorage.setItem('siteagent_session_id', sessionId);
