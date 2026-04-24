@@ -428,55 +428,24 @@
       this.setLoading(true);
 
       try {
-        // Call detect_context to understand user intent
-        const contextResponse = await this.callMcpTool('detect_context', {
+        // Call /chat proxy endpoint (no CORS issues, handles all tool calls internally)
+        const chatResponse = await this.callChatProxy({
+          message,
+          session_id: sessionId,
+          tenant_id: TENANT_ID,
           url: window.location.href,
-          action: message,
-          tenant_id: TENANT_ID,
         });
 
-        // Save user message to context
-        await this.callMcpTool('save_user_context', {
-          tenant_id: TENANT_ID,
-          session_id: sessionId,
-          role: 'user',
-          content: message,
-        });
-
-        // Search relevant content
-        const searchResponse = await this.callMcpTool('search_content', {
-          query: message,
-          tenant_id: TENANT_ID,
-          limit: 3,
-        });
-
-        // Format search results as context string
-        let searchResultsContext = '';
-        if (searchResponse?.results && searchResponse.results.length > 0) {
-          searchResultsContext = searchResponse.results
-            .map(result => result.content || result.content_text || '')
-            .join('\n');
-        }
-
-        // Call generate_response with user message and search context
-        const llmResponse = await this.callMcpTool('generate_response', {
-          user_message: message,
-          search_results: searchResultsContext,
-          tenant_id: TENANT_ID,
-        });
-
-        const assistantMessage = llmResponse?.response_text || 'Unable to generate a response. Please try again.';
-
-        // Save assistant response
-        await this.callMcpTool('save_user_context', {
-          tenant_id: TENANT_ID,
-          session_id: sessionId,
-          role: 'assistant',
-          content: assistantMessage,
-        });
+        const assistantMessage = chatResponse?.response || 'Unable to generate a response. Please try again.';
 
         // Add assistant message to UI
         this.addMessage('assistant', assistantMessage);
+
+        // Update session ID if server returned a new one
+        if (chatResponse?.session_id) {
+          sessionId = chatResponse.session_id;
+          localStorage.setItem('siteagent_session_id', sessionId);
+        }
       } catch (error) {
         console.error('SiteAgent error:', error);
         this.addMessage('error', 'Unable to process your request. Please try again.');
@@ -485,21 +454,14 @@
       }
     }
 
-    async callMcpTool(toolName, args) {
-      const response = await fetch(`${SERVER_URL}/mcp`, {
+    async callChatProxy(payload) {
+      const response = await fetch(`${SERVER_URL}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${API_KEY}`,
         },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          method: 'tools/call',
-          params: {
-            name: toolName,
-            arguments: args,
-          },
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -509,24 +471,10 @@
       const data = await response.json();
 
       if (data.error) {
-        throw new Error(data.error.message || 'MCP tool error');
+        throw new Error(data.error || 'Chat proxy error');
       }
 
-      // Extract structured content from MCP response
-      if (data.result?.structuredContent) {
-        return data.result.structuredContent;
-      }
-
-      // Fallback to parsing text content
-      if (data.result?.content?.[0]?.text) {
-        try {
-          return JSON.parse(data.result.content[0].text);
-        } catch {
-          return { error: 'Invalid response format' };
-        }
-      }
-
-      throw new Error('No response data from server');
+      return data;
     }
 
     buildResponse(contextData, searchData) {
