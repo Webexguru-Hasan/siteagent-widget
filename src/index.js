@@ -23,8 +23,21 @@
   const API_KEY = CONFIG.apiKey || 'default-api-key';
   const TENANT_ID = CONFIG.tenantId || 'default-tenant';
   
-  let sessionId = localStorage.getItem('siteagent_session_id');
-  if (!sessionId) {
+  // ISSUE 2 FIX: Clear old session on serverUrl change
+  const storedServerUrl = localStorage.getItem('siteagent_server_url');
+  const storedSessionId = localStorage.getItem('siteagent_session_id');
+  
+  let sessionId;
+  if (storedServerUrl !== SERVER_URL) {
+    // Different serverUrl - clear old session and create new one
+    console.log('[Widget] Server URL changed, clearing old session');
+    localStorage.removeItem('siteagent_session_id');
+    localStorage.setItem('siteagent_server_url', SERVER_URL);
+    sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('siteagent_session_id', sessionId);
+  } else if (storedSessionId) {
+    sessionId = storedSessionId;
+  } else {
     sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     localStorage.setItem('siteagent_session_id', sessionId);
   }
