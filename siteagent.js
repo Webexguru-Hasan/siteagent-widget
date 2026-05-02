@@ -34,7 +34,7 @@
         src.includes("github.io") ||
         src.includes("cloudflare")
       ) {
-        SERVER_URL = "https://siteagent-server.mcpize.run"
+        SERVER_URL = "https://siteagent-mcp-server-production.up.railway.app"
       } else {
         SERVER_URL = new URL(src).origin
       }
@@ -42,7 +42,7 @@
     }
   }
   if (!SERVER_URL) {
-    SERVER_URL = "https://siteagent-server.mcpize.run"
+    SERVER_URL = "https://siteagent-mcp-server-production.up.railway.app"
   }
 
   // ── 3. Theme detection ────────────────────────────────
