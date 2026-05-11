@@ -78,6 +78,11 @@
          aria-label="Chat assistant" hidden>
       <div class="sa-header">
         <span class="sa-title">Assistant</span>
+        <div style="flex: 1"></div>
+        <button class="sa-clear-chat" title="Clear chat" 
+                style="background:none; border:none; color:#94A3B8; font-size:11px; cursor:pointer; margin-right:8px; padding:4px;">
+          Clear chat
+        </button>
         <button class="sa-close" aria-label="Close chat">✕</button>
       </div>
       <div class="sa-messages" aria-live="polite"></div>
@@ -110,6 +115,7 @@
   const bubble      = container.querySelector(".sa-bubble")
   const chatWindow  = container.querySelector(".sa-window")
   const closeBtn    = container.querySelector(".sa-close")
+  const clearBtn    = container.querySelector(".sa-clear-chat")
   const messagesEl  = container.querySelector(".sa-messages")
   const suggestEl   = container.querySelector(".sa-suggestions")
   const inputEl     = container.querySelector(".sa-input")
@@ -128,13 +134,89 @@
   let conversationHistory = []
   let persona       = null
 
+  // ── 8b. Persistence ──────────────────────────────────
+  const STORAGE_KEY = "siteagent_chat_" + (TOKEN.substring(0, 20) || "default")
+  const MAX_HISTORY = 50
+
+  function getSessionId() {
+    let sessionId = localStorage.getItem("siteagent_session")
+    if (!sessionId) {
+      sessionId = "sa_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9)
+      localStorage.setItem("siteagent_session", sessionId)
+    }
+    return sessionId
+  }
+
+  function isHistoryExpired() {
+    const saved = localStorage.getItem(STORAGE_KEY + "_time")
+    if (!saved) return true
+    const savedTime = parseInt(saved)
+    const hours24 = 24 * 60 * 60 * 1000
+    return (Date.now() - savedTime) > hours24
+  }
+
+  function saveHistory(messages) {
+    try {
+      const toSave = messages.slice(-MAX_HISTORY)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
+      localStorage.setItem(STORAGE_KEY + "_time", Date.now().toString())
+    } catch (e) {
+      console.warn("SiteAgent: Could not save chat history")
+    }
+  }
+
+  function loadHistory() {
+    try {
+      if (isHistoryExpired()) {
+        localStorage.removeItem(STORAGE_KEY)
+        return []
+      }
+      const saved = localStorage.getItem(STORAGE_KEY)
+      return saved ? JSON.parse(saved) : []
+    } catch (e) {
+      return []
+    }
+  }
+
+  function renderHistory() {
+    const history = loadHistory()
+    if (history.length === 0) return
+
+    history.forEach(m => {
+      addMessage(m.role, m.content, false)
+    })
+
+    const divider = document.createElement("div")
+    divider.style.cssText = "color: #94A3B8; font-size: 11px; text-align: center; margin: 8px 0; border-bottom: 1px solid #f1f5f9; line-height: 0.1em;"
+    divider.innerHTML = `<span style="background: #fff; padding: 0 10px;">Previous conversation</span>`
+    messagesEl.appendChild(divider)
+    
+    conversationHistory = history
+    messageCount = history.filter(m => m.role === "assistant").length
+  }
+
+  clearBtn.addEventListener("click", () => {
+    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(STORAGE_KEY + "_time")
+    messagesEl.innerHTML = ""
+    conversationHistory = []
+    messageCount = 0
+    if (persona) {
+      const welcome = GREETING || persona?.welcomeMessage
+      if (welcome) addMessage("assistant", welcome)
+    }
+  })
+
   // ── 9. Open / Close ───────────────────────────────────
   function openChat() {
     isOpen = true
     chatWindow.removeAttribute("hidden")
     bubble.setAttribute("hidden", "")
     inputEl.focus()
-    if (!persona) loadContext()
+    if (!persona) {
+      renderHistory()
+      loadContext()
+    }
   }
 
   function closeChat() {
@@ -202,7 +284,7 @@
   }
 
   // ── 12. Add message to chat ───────────────────────────
-  function addMessage(role, text) {
+  function addMessage(role, text, save = true) {
     const div = document.createElement("div")
     div.className = `sa-message sa-${role}`
 
@@ -219,6 +301,11 @@
     </div>`
     messagesEl.appendChild(div)
     messagesEl.scrollTop = messagesEl.scrollHeight
+
+    if (save) {
+      saveHistory(conversationHistory)
+    }
+
     return div
   }
 
@@ -259,7 +346,8 @@
           token: TOKEN,
           question: text,
           currentPageUrl: window.location.href,
-          history: conversationHistory.slice(-6)
+          history: conversationHistory.slice(-6),
+          sessionId: getSessionId()
         })
       })
 
@@ -304,6 +392,13 @@
                 .replace(/\n/g, "<br>")
               messagesEl.scrollTop = messagesEl.scrollHeight
             } else if (event.type === "done") {
+              conversationHistory.push({
+                role: "assistant",
+                content: fullResponse
+              })
+              saveHistory(conversationHistory)
+              messageCount++
+              
               // Check for widget command in response
               tryExecuteCommand(fullResponse)
             } else if (event.type === "error") {
@@ -314,11 +409,12 @@
         }
       }
 
-      conversationHistory.push({
-        role: "assistant",
-        content: fullResponse
-      })
-      messageCount++
+      // REMOVED redundant history push - now handled in "done" event
+      // conversationHistory.push({
+      //   role: "assistant",
+      //   content: fullResponse
+      // })
+      // messageCount++
 
       // Show lead capture after 2 exchanges
       if (
